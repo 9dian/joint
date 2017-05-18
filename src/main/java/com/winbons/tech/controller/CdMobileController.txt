@@ -1,12 +1,12 @@
 package com.winbons.tech.controller;
 
-import com.winbons.tech.dao.entity.BillInfo;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 import javax.servlet.http.HttpServletResponse;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
@@ -16,56 +16,61 @@ import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-@RequestMapping({"/cdmobile"})
+import com.winbons.tech.dao.entity.BillInfo;
+
+/**
+ * 耘锦电话的对接 web controller
+ * @author FangXiaoqiao
+ * @version 
+ */
+@RequestMapping("/cdmobile")
 @Controller
-public class CdMobileController
-{
-  private Logger log = LoggerFactory.getLogger(CdMobileController.class);
+public class CdMobileController {
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
+    private Logger log = LoggerFactory.getLogger(CdMobileController.class);
+    
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  @Autowired
-  protected HibernateTemplate mysqlHibernateTemplate;
-
-  @RequestMapping({"/index"})
-  public void index(HttpServletResponse response) throws IOException { this.log.info("=============Enter /cdmobile/index=======================");
-    response.getWriter().println("index: test page."); }
-
-  @Transactional
-  @ResponseBody
-  @RequestMapping(value={"/feeInfo"}, method={org.springframework.web.bind.annotation.RequestMethod.POST})
-  public void putFeeInfo(String num, String param, HttpServletResponse response) throws IOException
-  {
-    this.log.info("=============Enter /cdmobile/feeInfo=======================");
-    this.log.info("Bill quantity (num): " + num);
-    this.log.info("param: " + param);
-    List billParam = (List)MAPPER.readValue(param, new TypeReference()
-    {
-    });
-    for (Map map : billParam)
-    {
-      BillInfo bill = new BillInfo(Objects.toString(map.get("caller"), null), 
-        Objects.toString(map
-        .get("callee"), 
-        null), 
-        Objects.toString(map
-        .get("code"), 
-        null), null == map
-        .get("start") ? 
-        null : Long.valueOf(Long.parseLong(Objects.toString(map.get("start")))), null == map
-        .get("end") ? 
-        null : Long.valueOf(Long.parseLong(Objects.toString(map.get("end")))), null == map
-        .get("min") ? 
-        null : Integer.valueOf(Integer.parseInt(Objects.toString(map.get("min")))), 
-        Objects.toString(map
-        .get("orderId"), 
-        null));
-
-      this.mysqlHibernateTemplate.save(bill);
+    @Autowired
+    protected HibernateTemplate mysqlHibernateTemplate;
+    
+    @RequestMapping("/index")
+    public void index(HttpServletResponse response) throws IOException {
+        log.info("=============Enter /cdmobile/index=======================");
+        response.getWriter().println("index: test page.");
     }
-
-    response.getWriter().println("success");
-  }
+    
+    @Transactional
+    @ResponseBody
+    @RequestMapping(value = "/feeInfo", method = RequestMethod.POST)
+    public void putFeeInfo(String num, String param, HttpServletResponse response) 
+    
+            throws IOException {
+        log.info("=============Enter /cdmobile/feeInfo=======================");
+        log.info("Bill quantity (num): " + num);
+        log.info("param: " + param);
+        List<Map<String, Object>> billParam = MAPPER.readValue(param,
+                new TypeReference<List<Map<String, Object>>>()
+                {
+                });
+        
+        for (Map<String, Object> map : billParam) {
+            // public BillInfo(String caller, String callee, String code, long start, long end, int min, String orderId) {
+            BillInfo bill = new BillInfo(Objects.toString(map.get("caller"), null),
+                    Objects.toString(map.get("callee"), null),
+                    Objects.toString(map.get("code"), null),
+                    null == map.get("start") ? null :Long.parseLong(Objects.toString(map.get("start"))),
+                    null == map.get("end") ? null : Long.parseLong(Objects.toString(map.get("end"))),
+                    null == map.get("min") ? null : Integer.parseInt(Objects.toString(map.get("min"))),
+                    Objects.toString(map.get("orderId"), null)
+                    );
+            mysqlHibernateTemplate.save(bill);
+        }
+        
+        response.getWriter().println("success");
+    }
+    
 }
